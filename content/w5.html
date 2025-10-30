@@ -131,7 +131,7 @@ img.add_border {
                             <li><a href="./../blog/index.html">blog</a></li>
                         </ul>
                       </li>
-                     <li><a href='About.html'>About</a><li><a href='w5.html'>w5</a><li><a href='Project.html'>Project</a><li><a href='Python.html'>Python</a><li class='has-children'><a href='Brython.html'>Brython</a><ul class='dropdown'><li><a href='Pyodide3.html'>Pyodide3</a></li>
+                     <li><a href='About.html'>About</a><li><a href='w5.html'>w5</a><li class='has-children'><a href='w8.html'>w8</a><ul class='dropdown'><li><a href='測試中.html'>測試中</a></li></ul><li><a href='Project.html'>Project</a><li><a href='Python.html'>Python</a><li class='has-children'><a href='Brython.html'>Brython</a><ul class='dropdown'><li><a href='Pyodide3.html'>Pyodide3</a></li>
                       </ul>
                 </nav>
               </div>
@@ -142,22 +142,27 @@ img.add_border {
           </div>
           
         </header>
-    <div id="tipue_search_content">About << <a href='About.html'>Previous</a> <a href='Project.html'>Next</a> >> Project<br /><h1>w5</h1>
+    <div id="tipue_search_content">About << <a href='About.html'>Previous</a> <a href='w8.html'>Next</a> >> w8<br /><h1>w5</h1>
 <div>長度 (length): <input id="input_length" min="1" type="number" value="10"/> 寬度 (width): <input id="input_width" min="1" type="number" value="10"/> <button id="btn_start">開始</button></div>
 <p><textarea cols="70" id="code_area" rows="15"># 請寫你的控制機器人的程式碼
+# r.disable_trace()可以單獨關閉畫線功能
+# r.enable_trace()可以單獨開啟畫線功能
+# r.move2()不會畫線
+
+
 def turn_right():
     r.turn_left()
     r.turn_left()
     r.turn_left()
 
 # 先不畫線，走前半段
-r.disable_trace()
+#r.disable_trace()
 r.move(4)
 r.turn_left()
 r.move(4)
 
 # 開始畫線，走後半段
-r.enable_trace()
+#r.enable_trace()
 r.move(1)
 turn_right()
 r.move(1)
@@ -267,7 +272,7 @@ class AnimatedRobot:
         self.trace_ctx = world.layers["objects"].getContext("2d")
         self.queue = []
         self.running = False
-        self.show_trace = False   # 預設不畫線
+        self.show_trace = True   # 預設畫線
         self._draw_robot()
 
     def _robot_image(self):
@@ -345,6 +350,42 @@ class AnimatedRobot:
         self.queue.append(action)
         self._run_queue()
 
+    def move2(self, steps):
+        def action(next_done):
+            def step():
+                nonlocal steps
+                if steps == 0:
+                    next_done()
+                    return
+                from_x, from_y = self.x, self.y
+                dx, dy = 0, 0
+                if self.facing == "E":
+                    dx = 1
+                elif self.facing == "W":
+                    dx = -1
+                elif self.facing == "N":
+                    dy = 1
+                elif self.facing == "S":
+                    dy = -1
+                next_x = self.x + dx
+                next_y = self.y + dy
+
+                if 0 <= next_x < self.world.width and 0 <= next_y < self.world.height:
+                    self.x, self.y = next_x, next_y
+
+                # ✅ move2 不畫線，直接跳過 trace
+                # self._draw_trace(from_x, from_y, self.x, self.y)  ← 把這行拿掉
+
+                    self._draw_robot()
+                    steps -= 1
+                    timer.set_timeout(step, 200)
+                else:
+                        print("🚨 已經撞牆，停止移動！")
+                        next_done()
+            step()
+        self.queue.append(action)
+        self._run_queue()
+
     def turn_left(self):
         def action(done):
             idx = self.facing_order.index(self.facing)
@@ -383,7 +424,7 @@ def start(ev):
 
     w = World(length, width)
     r = AnimatedRobot(w, 1, 1)
-    r.disable_trace()  # 預設不畫線
+    r.enable_trace()  # 預設不畫線
 
 def run_code(ev):
     global w, r, length, width, steps, steps1
@@ -395,7 +436,8 @@ def run_code(ev):
 
 document["btn_start"].bind("click", start)
 document["run_code_btn"].bind("click", run_code)
-</script><br />About << <a href='About.html'>Previous</a> <a href='Project.html'>Next</a> >> Project</div>
+</script>
+<br />About << <a href='About.html'>Previous</a> <a href='w8.html'>Next</a> >> w8</div>
         
     <!-- footer -->
       <div class="container">
